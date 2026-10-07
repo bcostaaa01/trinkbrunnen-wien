@@ -38,12 +38,18 @@ function ensure_schema(): void
  */
 function import_fountains(): int
 {
-    $json = file_get_contents(SOURCE_URL, false, stream_context_create([
-        'http' => ['timeout' => 20],
+    // data.wien.gv.at never answers requests without a User-Agent header,
+    // and PHP's HTTP stream sends none by default.
+    $json = @file_get_contents(SOURCE_URL, false, stream_context_create([
+        'http' => [
+            'timeout' => 20,
+            'user_agent' => 'trinkbrunnen-wien (+https://github.com/bcostaaa01/trinkbrunnen-wien)',
+        ],
     ]));
 
     if ($json === false) {
-        throw new RuntimeException('Could not download fountain data');
+        $reason = error_get_last()['message'] ?? 'unknown error';
+        throw new RuntimeException("Could not download fountain data: {$reason}");
     }
 
     $data = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
