@@ -1,0 +1,7 @@
+.git
+.ddev
+storage
+Dockerfile
+.dockerignore
+render.yaml
+README.md

@@ -118,7 +118,7 @@
             return getJSON('api/fountains.php').then(function (geojson) {
                 renderFountains(geojson);
                 var when = meta.lastImport
-                    ? new Date(meta.lastImport.imported_at.replace(' ', 'T')).toLocaleString('de-AT')
+                    ? new Date(meta.lastImport.importedAt).toLocaleString('de-AT')
                     : 'unbekannt';
                 setStatus(geojson.features.length + ' Brunnen · Stand: ' + when);
             });

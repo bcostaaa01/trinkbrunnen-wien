@@ -14,13 +14,18 @@ try {
     ensure_fresh();
 
     if (isset($_GET['meta'])) {
+        $last = last_import();
         echo json_encode([
             'types' => array_map(fn (array $t) => [
                 'id' => (int) $t['type_id'],
                 'name' => $t['type_name'],
                 'total' => (int) $t['total'],
             ], fetch_types()),
-            'lastImport' => last_import(),
+            'lastImport' => $last === null ? null : [
+                // ISO 8601 with offset, so browsers in any timezone read it right.
+                'importedAt' => date('c', strtotime($last['imported_at'])),
+                'count' => (int) $last['row_count'],
+            ],
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }

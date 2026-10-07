@@ -12,6 +12,28 @@ const MAX_AGE_SECONDS = 24 * 60 * 60;
 
 function ensure_schema(): void
 {
+    if (db_driver() === 'sqlite') {
+        db()->exec(
+            'CREATE TABLE IF NOT EXISTS fountains (
+                id INTEGER PRIMARY KEY,
+                type_id INTEGER NOT NULL,
+                type_name TEXT NOT NULL,
+                lat REAL NOT NULL,
+                lng REAL NOT NULL
+            )'
+        );
+        db()->exec('CREATE INDEX IF NOT EXISTS idx_type ON fountains (type_id)');
+        db()->exec(
+            'CREATE TABLE IF NOT EXISTS imports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                imported_at TEXT NOT NULL,
+                row_count INTEGER NOT NULL
+            )'
+        );
+
+        return;
+    }
+
     db()->exec(
         'CREATE TABLE IF NOT EXISTS fountains (
             id INT UNSIGNED PRIMARY KEY,
@@ -80,8 +102,9 @@ function import_fountains(): int
             ]);
         }
 
-        $pdo->prepare('INSERT INTO imports (imported_at, row_count) VALUES (NOW(), ?)')
-            ->execute([count($features)]);
+        // Timestamp comes from PHP so both drivers store the same format.
+        $pdo->prepare('INSERT INTO imports (imported_at, row_count) VALUES (?, ?)')
+            ->execute([date('Y-m-d H:i:s'), count($features)]);
         $pdo->commit();
     } catch (Throwable $e) {
         $pdo->rollBack();

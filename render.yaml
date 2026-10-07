@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: trinkbrunnen-wien
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /

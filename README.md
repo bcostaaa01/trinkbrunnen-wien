@@ -19,12 +19,15 @@ data.wien.gv.at (WFS, GeoJSON)
 MariaDB cache  ──►  /api/fountains.php  ──►  Leaflet frontend
 ```
 
-- **Backend:** plain PHP 8.4, no framework. The open data is cached in MariaDB
-  and refreshed at most once a day. If the city's API is down, the last cached
-  copy keeps being served.
+- **Backend:** plain PHP 8.4, no framework. The open data is cached in a
+  database and refreshed at most once a day. If the city's API is down, the
+  last cached copy keeps being served.
+- **Two database drivers:** MariaDB locally (DDEV), SQLite in production
+  (`DB_DRIVER=sqlite`). The same PDO code runs on both.
 - **Self-seeding:** a fresh environment starts with an empty database, so the
-  first API request imports the data automatically. Every preview deploy works
-  without a manual setup step.
+  first API request imports the data automatically. That is what makes an
+  ephemeral SQLite file good enough in production: if the container restarts
+  and the file is gone, the next request rebuilds it in under a second.
 - **Frontend:** vanilla JS and Leaflet with canvas rendering, so thousands of
   markers stay smooth.
 
@@ -48,8 +51,16 @@ ddev launch
 
 ## Deployment
 
-Runs on knecht: every push updates the preview environment from the same
-`.ddev/config.yaml` used locally.
+Production runs as a Docker container (PHP 8.4 + Apache, SQLite) on
+[Render](https://render.com), configured in `render.yaml`. Every push to
+`main` deploys automatically.
+
+To run the production image locally:
+
+```bash
+docker build -t trinkbrunnen-wien .
+docker run -p 8080:8080 trinkbrunnen-wien
+```
 
 ## Data license
 
